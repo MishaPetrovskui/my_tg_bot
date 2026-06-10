@@ -1,8 +1,11 @@
-import asyncio                           # [1]
-from os import getenv                    # [1]
+import asyncio
+from os import getenv
 
-from aiogram import Bot, Dispatcher      # [1]
-from aiogram.types import Message        # [1]
+from dotenv import load_dotenv
+from aiogram import Bot, Dispatcher
+from aiogram.types import Message
+
+load_dotenv()
 
 dp = Dispatcher()                        # [2]
 
