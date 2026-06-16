@@ -1,6 +1,8 @@
 import asyncio                           # [1]
 from os import getenv                    # [1]
 from dotenv import load_dotenv
+from os import path
+from aiogram.types import FSInputFile
 
 # pip install aiogram
 from aiogram import Bot, Dispatcher      # [1]
@@ -14,7 +16,7 @@ from google.genai import types
 dp = Dispatcher()                        # [2]
 client = None
 bot = None
-
+current_message_context = None
 # Підключення до telegram-бота
 def auth_telegram():
     token = getenv("BOT_TOKEN")  # [7]
@@ -30,7 +32,7 @@ def auth_gemini_api():
         print("No GEMINI_API_KEY provided. Running without Gemini API")
         return None
     try:
-        return genai.Client()
+        return genai.Client(api_key=api_key)
     except Exception:
         print("Can`t connect to Gemini API. Running without one.")
     return None
@@ -60,6 +62,7 @@ async def any_message(                   # [4]
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=message.text,
+                tools=[send_meme_sound],
                 config=types.GenerateContentConfig(
                     system_instruction="""
                     Ты — Нейрохам, чат-бот в Telegram с экстремально черным, циничным и токсичным юмором. 
@@ -94,8 +97,13 @@ async def any_message(                   # [4]
                 )
             )
         except Exception as err:
-            print(f"{type(err)}: {err}")
-            await message.answer("Щось пішло не так")
+            import traceback
+
+            traceback.print_exc()
+
+            await message.answer(
+                f"Ошибка:\n{type(err).__name__}\n{err}"
+            )
         else:
             await message.answer(str(response.text)) # [6]
 # Функция-инструмент, которую Gemini сможет вызывать сама
