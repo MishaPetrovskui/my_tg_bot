@@ -17,6 +17,10 @@ dp = Dispatcher()                        # [2]
 client = None
 bot = None
 current_message_context = None
+
+BASE_DIR = "/home/ec2-user/tg_bot/folder"
+
+
 # Підключення до telegram-бота
 def auth_telegram():
     token = getenv("BOT_TOKEN")  # [7]
@@ -129,15 +133,20 @@ async def any_message(                   # [4]
             await message.answer(response_text)
 # Функция-инструмент, которую Gemini сможет вызывать сама
 async def send_sound(message: Message, sound_name: str):
-    sound_path = f"folder/music/{sound_name}.mp3"
+    import os
 
-    if path.exists(sound_path):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    sound_path = os.path.join(BASE_DIR, "music", f"{sound_name}.mp3")
+
+    print("DEBUG PATH:", sound_path)
+
+    if os.path.exists(sound_path):
         await message.answer_audio(
             audio=FSInputFile(sound_path),
             caption="🔇"
         )
     else:
-        await message.answer("❌ звук не найден")
+        await message.answer(f"❌ звук не найден: {sound_name}")
 
 async def main():
     global bot, client
