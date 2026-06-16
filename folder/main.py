@@ -62,7 +62,6 @@ async def any_message(                   # [4]
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=message.text,
-                tools=[send_meme_sound],
                 config=types.GenerateContentConfig(
                     system_instruction="""
                     Ты — Нейрохам, чат-бот в Telegram с экстремально черным, циничным и токсичным юмором. 
