@@ -74,6 +74,20 @@ async def any_message(                   # [4]
                     4. Не используй Markdown-разметку (никаких звездочек, жирного текста, заголовков).
                     5. Отвечай очень кратко, хлестко и по существу (1-2 предложения).
                     6. Пиши на том языке, на котором написал пользователь.
+                    
+                    Вызывай эту функцию, если ситуация идеально подходит под мемный звук или музыку.
+    
+                    Доступные значения для sound_name (выбирай строго одно из списка):
+                    - 'bara_bere': трек "бара бара бара бере бере бере", врубай когда пользователь заикается, мямлит или тупит.
+                    - 'cyberbully': звук "че закибербулили тебя?", используй при жалобах на буллинг, нытье или слабость.
+                    - 'discipline': звук про дисциплину, врубай когда пользователя надо жестко поучить жизни или приструнить.
+                    - 'idi_nah': жесткое посылание нахрен, используй когда юзер тебя откровенно бесит или дерзит.
+                    - 'sad_trombone': грустный тромбон, включай при тотальных фейлах, неудачах или плаче пользователя.
+                    - 'sela_dala': звук "села дала", используй при пошлых темах или когда кто-то нелепо подкатывает.
+                    - 'poisk_pisa.mp3' -> 'poisk_pisa': система поиска писюнов, включай когда кто-то пытается меряться крутостью или выпендривается.
+                    Если нужно проиграть звук — отвечай строго в формате:
+                    SOUND:<название>
+                    Без текста.
                     """,
                     safety_settings=[
                         types.SafetySetting(
@@ -103,49 +117,27 @@ async def any_message(                   # [4]
             await message.answer(
                 f"Ошибка:\n{type(err).__name__}\n{err}"
             )
+        response_text = str(response.text)
+
+        if response_text.startswith("SOUND:"):
+            sound_name = response_text.replace("SOUND:", "").strip()
+
+            await send_sound(message, sound_name)
+
+            await message.answer("🔊")
         else:
-            await message.answer(str(response.text)) # [6]
+            await message.answer(response_text)
 # Функция-инструмент, которую Gemini сможет вызывать сама
-def send_meme_sound(sound_name: str) -> str:
-    """
-    Вызывай эту функцию, если ситуация идеально подходит под мемный звук или музыку.
-    
-    Доступные значения для sound_name (выбирай строго одно из списка):
-    - 'bara_bere': трек "бара бара бара бере бере бере", врубай когда пользователь заикается, мямлит или тупит.
-    - 'cyberbully': звук "че закибербулили тебя?", используй при жалобах на буллинг, нытье или слабость.
-    - 'discipline': звук про дисциплину, врубай когда пользователя надо жестко поучить жизни или приструнить.
-    - 'idi_nah': жесткое посылание нахрен, используй когда юзер тебя откровенно бесит или дерзит.
-    - 'sad_trombone': грустный тромбон, включай при тотальных фейлах, неудачах или плаче пользователя.
-    - 'sela_dala': звук "села дала", используй при пошлых темах или когда кто-то нелепо подкатывает.
-    - 'poisk_pisa.mp3' -> 'poisk_pisa': система поиска писюнов, включай когда кто-то пытается меряться крутостью или выпендривается.
-    """
-    global current_message_context
-    if not current_message_context:
-        return "Ошибка: нет контекста сообщения"
-        
-    sound_path = f"folder/music/{sound_name}.mp3" # Указан путь с учетом папки 'folder'
-    
-    # Проверяем, существует ли файл на сервере
+async def send_sound(message: Message, sound_name: str):
+    sound_path = f"folder/music/{sound_name}.mp3"
+
     if path.exists(sound_path):
-        asyncio.create_task(
-            current_message_context.answer_audio(
-                audio=FSInputFile(sound_path),
-                caption="🔇 Вместо тысячи слов..."
-            )
+        await message.answer_audio(
+            audio=FSInputFile(sound_path),
+            caption="🔇"
         )
-        return f"Звук {sound_name} успешно отправлен пользователю."
     else:
-        # Если бот запущен из корня репозитория, проверяем альтернативный путь
-        alt_path = f"music/{sound_name}.mp3"
-        if path.exists(alt_path):
-            asyncio.create_task(
-                current_message_context.answer_audio(
-                    audio=FSInputFile(alt_path),
-                    caption="🔇 Вместо тысячи слов..."
-                )
-            )
-            return f"Звук {sound_name} успешно отправлен."
-        return f"Ошибка: файл {sound_name}.mp3 не найден на сервере."
+        await message.answer("❌ звук не найден")
 
 async def main():
     global bot, client
