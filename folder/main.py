@@ -34,20 +34,12 @@ def auth_gemini_api():
         print("Can`t connect to Gemini API. Running without one.")
     return None
 
+import random
+
 @dp.message(Command("roll"))
 async def cmd_roll(message: Message):
-    if client is None:
-        await message.answer("Gemini недоступна")
-        return
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.5-flash",
-            contents="Кинь кубик d6. Напиши тільки число від 1 до 6, без пояснень.",
-        )
-        await message.answer(f"🎲 {response.text.strip()}")
-    except Exception as err:
-        print(f"{type(err)}: {err}")
-        await message.answer("Щось пішло не так")
+    result = random.randint(1, 6)
+    await message.answer(f"🎲 {result}")
 
 # Обробник команди /start
 @dp.message(Command("start"))
