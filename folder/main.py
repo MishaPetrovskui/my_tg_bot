@@ -39,7 +39,10 @@ def auth_gemini_api():
 @dp.message(Command("roll"))
 async def cmd_roll(message: Message):
     result = random.randint(1, 6)
-    await message.answer(f"🎲 {result}")
+    markup = InlineKeyboardMarkup()
+    button = types.InlineKeyboardButton("nothing", url="https://google.com")
+    markup.add(button)
+    await message.answer(f"🎲 {result}", reply_markup=markup)
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
@@ -61,7 +64,9 @@ async def any_message(message: Message):
             )
             
             response_text = str(response.text)
+
             await message.answer(response_text)
+
             
         except Exception as err:
             import traceback
