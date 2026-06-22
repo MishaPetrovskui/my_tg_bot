@@ -14,6 +14,9 @@ from google import genai
 from google.genai import types
 from PromptBuilder import PromptBuilder
 
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardButton
+
 
 dp = Dispatcher()
 client = None
@@ -39,10 +42,10 @@ def auth_gemini_api():
 @dp.message(Command("roll"))
 async def cmd_roll(message: Message):
     result = random.randint(1, 6)
-    markup = InlineKeyboardMarkup()
-    button = types.InlineKeyboardButton("nothing", url="https://google.com")
-    markup.add(button)
-    await message.answer(f"🎲 {result}", reply_markup=markup)
+    builder = InlineKeyboardBuilder()
+    builder.add(InlineKeyboardButton(text="nothing", url="https://google.com"))
+    
+    await message.answer(f"🎲 {result}", reply_markup=builder.as_markup())
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
