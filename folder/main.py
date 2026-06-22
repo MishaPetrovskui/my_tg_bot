@@ -12,6 +12,8 @@ from aiogram.filters import Command
 # pip install google-genai
 from google import genai
 from google.genai import types
+from PromptBuilder import PromptBuilder
+
 
 dp = Dispatcher()                        # [2]
 client = None
@@ -63,55 +65,11 @@ async def any_message(                   # [4]
         await message.answer("Hello world!")
     else:
         try:
+            prompt = PromptBuilder.simple_prompt(message.text)
+            await message.answer(f"DEBUG: {prompt}")
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=message.text,
-                config=types.GenerateContentConfig(
-                    system_instruction="""
-                    Ты — Нейрохам, чат-бот в Telegram с экстремально черным, циничным и токсичным юмором. 
-                    Твоя цель — жестко стебать, высмеивать и материть пользователя, отвечая на его сообщения с максимальным сарказмом.
-
-                    Правила поведения:
-                    1. Общайся исключительно матом, используй грубые и нецензурные выражения.
-                    2. Любую проблему, трагедию или вопрос пользователя превращай в жестокую шутку (пример: если оторвало ноги — советуй БЕЖАТЬ в больницу).
-                    3. Будь циничной тварью, у которой нет эмпатии, жалости и моральных границ.
-                    4. Не используй Markdown-разметку (никаких звездочек, жирного текста, заголовков).
-                    5. Отвечай очень кратко, хлестко и по существу (1-2 предложения).
-                    6. Пиши на том языке, на котором написал пользователь.
-                    
-                    Вызывай эту функцию, если ситуация идеально подходит под мемный звук или музыку.
-    
-                    Доступные значения для sound_name (выбирай строго одно из списка):
-                    - 'bara_bere': трек "бара бара бара бере бере бере", врубай когда пользователь заикается, мямлит или тупит.
-                    - 'cyberbully': звук "че закибербулили тебя?", используй при жалобах на буллинг, нытье или слабость.
-                    - 'discipline': звук про дисциплину, врубай когда пользователя надо жестко поучить жизни или приструнить.
-                    - 'idi_nah': жесткое посылание нахрен, используй когда юзер тебя откровенно бесит или дерзит.
-                    - 'sad_trombone': грустный тромбон, включай при тотальных фейлах, неудачах или плаче пользователя.
-                    - 'sela_dala': звук "села дала", используй при пошлых темах или когда кто-то нелепо подкатывает.
-                    - 'poisk_pisa' -> 'poisk_pisa': система поиска писюнов, включай когда кто-то пытается меряться крутостью или выпендривается.
-                    Если нужно проиграть звук — отвечай строго в формате:
-                    SOUND:<название>
-                    Без текста.
-                    """,
-                    safety_settings=[
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                        types.SafetySetting(
-                            category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                        ),
-                    ]
-                )
+                contents=prompt,
             )
         except Exception as err:
             import traceback
@@ -122,31 +80,6 @@ async def any_message(                   # [4]
                 f"Ошибка:\n{type(err).__name__}\n{err}"
             )
         response_text = str(response.text)
-
-        if response_text.startswith("SOUND:"):
-            sound_name = response_text.replace("SOUND:", "").strip()
-
-            await send_sound(message, sound_name)
-
-            await message.answer("🔊")
-        else:
-            await message.answer(response_text)
-# Функция-инструмент, которую Gemini сможет вызывать сама
-async def send_sound(message: Message, sound_name: str):
-    import os
-
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    sound_path = os.path.join(BASE_DIR, "music", f"{sound_name}.mp3")
-
-    print("DEBUG PATH:", sound_path)
-
-    if os.path.exists(sound_path):
-        await message.answer_audio(
-            audio=FSInputFile(sound_path),
-            caption="🔇"
-        )
-    else:
-        await message.answer(f"❌ звук не найден: {sound_name}")
 
 async def main():
     global bot, client
