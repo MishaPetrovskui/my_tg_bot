@@ -14,13 +14,16 @@ from google import genai
 from google.genai import types
 from PromptBuilder import PromptBuilder
 
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
+from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import InlineKeyboardButton
 
 
 dp = Dispatcher()
 client = None
 bot = None
+
+games: dict[int, dict] = {}
 
 def auth_telegram():
     token = getenv("BOT_TOKEN")
@@ -75,6 +78,16 @@ async def any_message(message: Message):
             import traceback
             traceback.print_exc()
             await message.answer(f"Ошибка:\n{type(err).__name__}\n{err}")
+
+@dp.message(Command("tictactoe"))
+async def game_tictactoe(message: Message):
+    chat_id = message.chat.id
+    games[chat_id] = {
+        "board" = " " * 9,
+        "ai" = "O",
+        "human" = "X",
+    }
+
 
 async def main():
     global bot, client
