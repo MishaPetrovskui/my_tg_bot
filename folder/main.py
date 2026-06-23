@@ -108,7 +108,7 @@ async def main():
     client = auth_gemini_api()
 
     try:
-        test_db = DataBase("users")
+        test_db = DataBase("TestTable")
         print(f"DB connected: {test_db}")
     except Exception as err:
         print(f"Can`t connect to DB: {err}")

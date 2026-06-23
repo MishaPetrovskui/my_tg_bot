@@ -1,9 +1,10 @@
 import boto3
 from os import getenv
+from datetime import datetime, timezone
 
 
 class DataBase:
-    def __init__(self, table_name: str = "users"):
+    def __init__(self, table_name: str = "TestTable"):
         self.dynamodb = boto3.resource(
             "dynamodb",
             region_name=getenv("AWS_REGION", "us-east-1"),
@@ -15,14 +16,15 @@ class DataBase:
     def __str__(self):
         return str(self.table)
 
-    def add_user(self, user_id: int, full_name: str):
+    def add_user(self, user_id: int, full_name: str = ""):
         self.table.put_item(Item={
-            "user_id": str(user_id),
+            "id": user_id,                                          # Number (partition key)
+            "created_at": datetime.now(timezone.utc).isoformat(),  # String
             "full_name": full_name,
         })
 
     def get_user(self, user_id: int):
-        response = self.table.get_item(Key={"user_id": str(user_id)})
+        response = self.table.get_item(Key={"id": user_id})
         return response.get("Item")
 
     def get_all_users(self):
